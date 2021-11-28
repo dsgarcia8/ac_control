@@ -18,7 +18,7 @@ MAC = "24dfa7501214"
 
 
 # Fetch the service account key JSON file contents
-cred = credentials.Certificate('./energy-coach-firebase-adminsdk-wxvhm-1a92546ef6.json')
+cred = credentials.Certificate('./energy-coach-firebase-adminsdk-wxvhm-d5099bd43d.json')
 
 # Initialize the app with a service account, granting admin privileges
 firebase_admin.initialize_app(cred, {
