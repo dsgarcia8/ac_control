@@ -1,5 +1,9 @@
 import broadlink
 import time
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+
 
 TURN_OFF= "2600bc01703a0d100c2d0c100d100c100d100c110c100d100d0f0d100d100c100d2c0d100c100e0f0c110c100d100c100e2b0d2c0d2c0d100c100d2c0d100c110c100d100c100e0f0c100d100d100c100d100c100d100d100c100d100c110c100d100c100d100c110c100d100c100d100d100c100d100c100d2c0d2c0d100c100d100d100c100d000147703b0c100d2c0d100c110c100d100c100d100c110d0f0d100c100d100c2d0c100d100d100c100d100c110c100d2c0d2c0d2c0c110c100d2c0d100c100d100c100d100d100c100d100c100d100d100c100d100c100d100c110c2d0c100d2c0d100c100d100c100d2c0d2c0d100c2d0d100c100d100c100d100c110c100d100c100d2c0e2b0d2c0d2c0d2c0d2c0e0f0c2d0d0f0d100c2d0c100d2c0d100d100c100d100c100d100c110c100d100c100d100c110c100d2c0d2c0d2c0d100c100d100c110c100d100c100d100c100d2c0d2c0d2c0d100c110c100d100c100d100d100c100d100c100d100c110c100d100c100d100c2d0c100d100d100c100d100c100d2c0d100d100c100d100c110c100d100c100d100d100c100d100c100d100d100c100d100c2d0c100e0f0d2c0d2c0d100c2d0c000d05"
 TURN_ON = "2600bc016f3b0d100c2c0d100d100c100d100c100d100d100c100e0f0c110c100d2c0e0f0c100d100d0f0e0f0d100c100d2c0d2c0d2c0d100c100d2c0d100d100c100d100c100d100d100d0f0d100c100d100c110c100d100c100d100c110d0f0d100c100d100d100c100d100c100d100d100c100d100c100d2c0d2c0d100d100c100e0f0d0f0d0001486f390f100c2c0d100d100c100d100c100d100e0f0c100d100c110c100d2c0d100c100e0f0c100d100d100c100d2c0d2c0d2c0d100c100d2c0d100d100c100d100d0f0d100d100c100d100c100d100c100d100d2c0d100c100d2c0d100c2d0c100d100d100c100d2c0d2c0d100c2d0c100d100d0f0d100d100c100d100c110c100d2c0d2c0d2c0d2c0d2b0e2c0d100c2d0d0f0d110b2d0c100d2c0d100c110c100d100c100d100c110c100e0f0c100d100c110c100d2c0d2c0d2c0d100c100d100c110c100d100c100d100c100d2c0e2b0d2c0d100c100d100e0f0c100d100c100d100e0f0c100d100d100c100d100c100d100d2c0d100c100d100c100d100c100d2d0c100d100c100d100d100c100d100c110c100d100c100d100d100c100d100d100c2c0d2c0d100d100c2d0c2d0d0f0d2c0d000d05"
@@ -11,6 +15,26 @@ DEVTYPE = 0x6539
 HOST = "192.168.100.53"
 PORT = 80
 MAC = "24dfa7501214"
+
+
+# Fetch the service account key JSON file contents
+cred = credentials.Certificate('./energy-coach-firebase-adminsdk-wxvhm-1a92546ef6.json')
+
+# Initialize the app with a service account, granting admin privileges
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://energy-coach-default-rtdb.firebaseio.com/'
+})
+
+# As an admin, the app has access to read and write all data, regradless of Security Rules
+
+# Get a database reference to our posts
+ref = db.reference('recomendation')
+
+# Read the data at the posts reference (this is a blocking operation)
+
+diccionario=ref.get()
+opcion=diccionario['rec']
+
 
 #dev = broadlink.gendevice(DEVTYPE,(HOST,PORT), MAC)
 #dev.auth()
@@ -54,29 +78,16 @@ def control_AC(code: int):
         #bajar temperatura
         temp_down_AC(device)
     if code == 5:
-        print("exiting...")
-        exit()
-    else:
-        print('Invalid option. Please entern a number between 1 and 4')       
-
-def main():
-    #devices = broadlink.discover()
-    #device = devices[0]
-    #device.auth()
-    #print(device.check_power())
-    menu_options = {
-        1: 'Turn ON AC',
-        2: 'Turn OFF AC',
-        3: 'Raise temperature',
-        4: 'Lower temperature'
-    }
-    print("Please chosee an option")
-    for key,value in menu_options.items():
-        print(str(key)+"--"+value)
-    ans = input('Enter your choice: ')
-    print(ans)
-    control_AC(int(ans))    
+        print("Standby")
     
+def listener(event):
+        print(event.data)
+        dict=event.data
+        print(dict['rec'])
+        control_AC(int(dict['rec']))  # new data at /reference/event.path. None if deleted
+def main():
+    #control_AC(int(opcion))    
+    firebase_admin.db.reference('/recomendation').listen(listener)
 if __name__ == '__main__':
     main()
              
