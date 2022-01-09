@@ -182,7 +182,7 @@ def control_AC(code: int):
     if code == 10:
         #setear a 23 la temperatura
         temp_23_AC(device)
-    if code == 10:
+    if code == 11:
         #setear a 24 la temperatura
         temp_24_AC(device)
     if code == 12:
